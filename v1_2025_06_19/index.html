@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: sans-serif; padding: 20px; }
+      .video-card {
+        display: flex; gap: 12px; margin-bottom: 20px;
+        border: 1px solid #ccc; padding: 10px; border-radius: 10px;
+      }
+      .thumb { width: 160px; height: 90px; object-fit: cover; }
+    </style>
+  </head>
+  <body>
+    <h2>중년 유튜브 추천 영상</h2>
+    <button onclick="updateVideos()">영상 수집 및 시트 저장</button>
+    <p id="status"></p>
+    <div id="list"></div>
+
+    <script>
+      function updateVideos() {
+        document.getElementById("status").innerText = "수집 중...";
+        google.script.run.withSuccessHandler(msg => {
+          document.getElementById("status").innerText = msg;
+          loadList();
+        }).fetchAndStoreVideos();
+      }
+
+      function loadList() {
+        google.script.run.withSuccessHandler(data => {
+          const container = document.getElementById("list");
+          container.innerHTML = "";
+          data.forEach(row => {
+            const [title, url, thumb, date, views, keyword] = row;
+            const el = document.createElement("div");
+            el.className = "video-card";
+            el.innerHTML = `
+              <img src="${thumb}" class="thumb">
+              <div>
+                <a href="${url}" target="_blank"><strong>${title}</strong></a><br>
+                조회수: ${views.toLocaleString()}<br>
+                업로드일: ${new Date(date).toLocaleDateString()}<br>
+                키워드: ${keyword}
+              </div>`;
+            container.appendChild(el);
+          });
+        }).getVideoList();
+      }
+
+      window.onload = loadList;
+    </script>
+  </body>
+</html>
